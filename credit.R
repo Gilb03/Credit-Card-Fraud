@@ -42,7 +42,39 @@ test %>%
 
 
 
-#RANDOM FOREST (done)
+#REGRESSION ANALYSIS
+str(cardData)
+summary(cardData)
+hist(cardData$V1, col="red", main="Transaction Distributions")
+hist(cardData$Time, col="blue", main="Transaction Volume")
+
+set.seed(1937028)
+train_ind <- sample(nrow(cardData),round(0.75*nrow(cardData)))
+train     <- cardData[train_ind,]
+test      <- cardData[-train_ind,]
+
+
+Model1 <- lm(Time~V17,data=train)
+Model2 <- lm(Time~V17+ V12,data = train)
+prediction1 <- predict(Model1, newdata = test)
+prediction2 <- predict(Model2, newdata = test)
+
+pe1 <- residuals(Model1, newdata=test)
+pe2 <- residuals(Model2, newdata=test)
+
+#MSE VS RMSE
+MSE1 <- mean(pe1^2)
+MSE2 <- mean(pe2^2)
+RMSE1 <- MSE1^0.5
+RMSE2 <- MSE2^0.5
+
+#PERFORMANCE COMPARISON 
+print(c(RMSE1, RMSE2))
+
+
+
+
+#RANDOM FOREST 
 rfModel <- randomForest(Class ~ . , data = train)
 test$predicted <- predict(rfModel, test)
 library(caret)
@@ -133,7 +165,7 @@ plot(rf10, xlim=c(0,100))
 
 
 
-#KNN MODEL (done)
+#KNN MODEL 
 str(cardData)
 cardData$Class <- as.factor(cardData$Class)
 set.seed(1991)
@@ -149,7 +181,7 @@ knn1 <- knn(train = train[,-31], test = test[,-31], cl = train$Class, k = 5)
 confusionMatrix(knn1, test$Class, positive = "1")
 
 
-#NAIVE BAYES
+#NAIVE BAYES (?)
 library(class)
 bayes <- naiveBayes(Class~., data=train, laplace = 1)
 bayes$apriori
@@ -163,9 +195,25 @@ perf <- performance(ptest, "tpr", "fpr")
 plot(perf, colorize = T)
 performance(ptest, "auc")@y.values
 
-#LINEAR PROBABILITY MODEL 
+
+#DASHBOARD 
+library(shiny)
+library(shinydashboard)
+
+ui <- dashboardPage(
+  dashboardHeader( title="Creditcard Fraud Dashboard"),
+  dashboardSidebar(),
+  dashboardBody()
+)
+
+server <- function(input, output){
+  
+}
+
+shinyApp(ui,server)
+
 
 
 
 #DASHBOARD CONFIG 
-  # ONLY THE OUTPUTS OF MODEL COMPARISONS WILL LIVE ONT HE DASHBOARD. 
+  # ONLY THE OUTPUTS OF MODEL COMPARISONS WILL LIVE ON THE DASHBOARD. 
